@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .container {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .instructions {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196f3;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+        .instructions ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            margin: 10px 0;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .search-container {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .search-input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            flex-grow: 1;
+            max-width: 300px;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .summary {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .item {
+            margin-bottom: 5px;
+            display: flex;
+            align-items: baseline;
+            padding: 5px;
+        }
+        .item:hover {
+            background-color: #f8f9fa;
+        }
+        .item.hidden {
+            display: none;
+        }
+        .item.highlight {
+            background-color: #fff3cd;
+        }
+        .grade {
+            width: 80px;
+            font-weight: bold;
+        }
+        .name {
+            flex: 1;
+            padding-right: 20px;
+        }
+        .probability {
+            width: 80px;
+            text-align: right;
+        }
+        .button-group {
+            margin-bottom: 20px;
+        }
+        .export-button {
+            background: #007bff;
+        }
+        .export-button:hover {
+            background: #0056b3;
+        }
+        .credits {
+            margin-top: 30px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: center;
+            border-top: 1px solid #dee2e6;
+            font-size: 14px;
+            color: #6c757d;
+        }
+        .credits p {
+            margin: 5px 0;
+        }
+        .color-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .color-card {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 10px;
+            background: #fafafa;
+            transition: transform 0.2s;
+        }
+        .color-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .color-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: monospace;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .color-preview {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .color-code {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .item-name {
+            margin-top: 8px;
+            font-size: 14px;
+            padding-top: 8px;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="instructions">
+            <h3>📋 使用說明</h3>
+            <ol>
+                <li>支援台服/韓服等多種格式機率表</li>
+                <li>直接用滑鼠圈選整個機率表（不需要排版）</li>
+                <li>按Ctrl+C（或右鍵複製）</li>
+                <li>回到這裡按Ctrl+V（或右鍵貼上）到下方文字框</li>
+                <li>點擊「計算機率」按鈕即可看到結果</li>
+            </ol>
+            <p>🔍 額外功能：</p>
+            <ul>
+                <li>可使用搜尋框查找特定道具</li>
+                <li>可導出TXT檔案保存結果</li>
+                <li>自動顯示顏色代碼與預覽</li>
+                <li>支援多國語言機率表格式</li>
+            </ul>
+        </div>
+        
+        <h2>遊戲機率計算工具</h2>
+        <textarea id="input" placeholder="請直接貼上官網機率表..."></textarea>
+        <br>
+        <div class="button-group">
+            <button onclick="calculateProbability()">計算機率</button>
+            <button onclick="clearInput()">清除</button>
+            <button class="export-button" onclick="exportToTxt()" id="exportBtn" style="display:none">導出TXT檔案</button>
+        </div>
+        <div class="search-container" id="searchContainer" style="display:none">
+            <input type="text" 
+                   class="search-input" 
+                   id="searchInput" 
+                   placeholder="搜尋道具名稱..."
+                   oninput="filterItems(this.value)">
+            <span id="searchCount"></span>
+        </div>
+        <div id="result"></div>
+        <div class="credits">
+            <p>製作者：台服愛麗沙玩家 - Sorina</p>
+        </div>
+    </div>
+
+    <script>
+        let currentItems = [];
+
+        function hexToRgb(hex) {
+            hex = hex.replace('#', '');
+            const r = parseInt(hex.substring(0, 2), 16);
+            const g = parseInt(hex.substring(2, 4), 16);
+            const b = parseInt(hex.substring(4, 6), 16);
+            return {r, g, b};
+        }
+
+        function processColorCode(str) {
+            const colorRegex = /#[0-9A-Fa-f]{6}/g;
+            return str.replace(colorRegex, match => {
+                const rgb = hexToRgb(match);
+                return `<div class="color-info">
+                    <div class="color-preview" style="background-color: ${match}"></div>
+                    <div class="color-code">
+                        <span>HEX: ${match}</span>
+                        <span>RGB: (${rgb.r}, ${rgb.g}, ${rgb.b})</span>
+                    </div>
+                </div>`;
+            });
+        }
+        
+        function calculateProbability() {
+            const input = document.getElementById('input').value;
+            const result = document.getElementById('result');
+            
+            try {
+                currentItems = [];
+                const gradeMap = new Map();
+                let total = 0;
+
+                // 先檢查是否含有SABC等級格式
+                const sabcRegex = /([SABC])\s*等級([^%]+?)(\d+\.\d+)%/g;
+                let hasAnyMatch = false;
+                let match;
+
+                // 嘗試SABC格式
+                while ((match = sabcRegex.exec(input)) !== null) {
+                    hasAnyMatch = true;
+                    const grade = match[1];
+                    const name = match[2].trim();
+                    const probability = parseFloat(match[3]);
+                    
+                    currentItems.push({ grade, name, probability });
+                    total += probability;
+                    
+                    if (!gradeMap.has(grade)) {
+                        gradeMap.set(grade, 0);
+                    }
+                    gradeMap.set(grade, gradeMap.get(grade) + probability);
+                }
+
+                // 如果沒有SABC格式，嘗試其他格式
+                if (!hasAnyMatch) {
+                    // 一般格式（名稱+機率）
+                    const generalRegex = /(.+?)(\d+\.\d+)%/g;
+                    while ((match = generalRegex.exec(input)) !== null) {
+                        const name = match[1].trim();
+                        const probability = parseFloat(match[2]);
+                        const grade = '一般';
+                        
+                        currentItems.push({ grade, name, probability });
+                        total += probability;
+                        
+                        if (!gradeMap.has(grade)) {
+                            gradeMap.set(grade, 0);
+                        }
+                        gradeMap.set(grade, gradeMap.get(grade) + probability);
+                    }
+                }
+
+                // 生成結果HTML
+                let resultHTML = '<div class="summary">';
+                resultHTML += `<h3>機率統計</h3>`;
+                resultHTML += `<p><strong>總機率：${total.toFixed(4)}%</strong></p>`;
+
+                // 顯示各等級小計
+                if (gradeMap.size > 0) {
+                    resultHTML += '<p>各等級機率：';
+                    let first = true;
+                    for (let [grade, prob] of gradeMap) {
+                        if (!first) resultHTML += ' | ';
+                        resultHTML += `${grade}：${prob.toFixed(4)}%`;
+                        first = false;
+                    }
+                    resultHTML += '</p>';
+                }
+                resultHTML += '</div>';
+
+                // 顯示詳細列表
+                resultHTML += '<h3>詳細機率表</h3>';
+                resultHTML += '<div id="itemsList">';
+                currentItems.forEach(({grade, name, probability}, index) => {
+                    const processedName = processColorCode(name);
+                    resultHTML += `<div class="item" data-index="${index}">
+                        <span class="grade">${grade}</span>
+                        <span class="name">${processedName}</span>
+                        <span class="probability">${probability.toFixed(4)}%</span>
+                    </div>`;
+                });
+                resultHTML += '</div>';
+
+                // 處理顏色道具
+                const colorItems = [];
+                currentItems.forEach(({grade, name}) => {
+                    const colorMatches = [...name.matchAll(/#[0-9A-Fa-f]{6}/g)];
+                    if (colorMatches.length > 0) {
+                        colorMatches.forEach(match => {
+                            const hex = match[0];
+                            const rgb = hexToRgb(hex);
+                            colorItems.push({
+                                color: hex,
+                                rgb: rgb,
+                                grade: grade,
+                                name: name
+                            });
+                        });
+                    }
+                });
+
+                if (colorItems.length > 0) {
+                    resultHTML += '<div class="color-section">';
+                    resultHTML += '<h3>🎨 顏色道具列表</h3>';
+                    resultHTML += '<div class="color-grid">';
+                    
+                    colorItems.forEach(item => {
+                        resultHTML += `
+                            <div class="color-card">
+                                <div class="color-info">
+                                    <div class="color-preview" style="background-color: ${item.color}"></div>
+                                    <div class="color-code">
+                                        <span>HEX: ${item.color}</span>
+                                        <span>RGB: (${item.rgb.r}, ${item.rgb.g}, ${item.rgb.b})</span>
+                                    </div>
+                                </div>
+                                <div class="item-name">
+                                    <span>${item.grade}</span>
+                                    ${item.name}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    resultHTML += '</div></div>';
+                }
+
+                result.innerHTML = resultHTML;
+                
+                document.getElementById('searchContainer').style.display = 'flex';
+                document.getElementById('exportBtn').style.display = 'inline-block';
+                
+            } catch (error) {
+                result.innerHTML = `<p style="color: red;">錯誤：${error.message}</p>`;
+            }
+        }
+        
+        function filterItems(searchText) {
+            const items = document.querySelectorAll('.item');
+            let matchCount = 0;
+            
+            items.forEach(item => {
+                const name = item.querySelector('.name').textContent.toLowerCase();
+                const matches = name.includes(searchText.toLowerCase());
+                item.classList.toggle('hidden', !matches);
+                item.classList.toggle('highlight', matches && searchText !== '');
+                if (matches) matchCount++;
+            });
+            
+            const searchCount = document.getElementById('searchCount');
+            searchCount.textContent = searchText ? `找到 ${matchCount} 個結果` : '';
+        }
+        
+	
+			function exportToTxt() {
+            if (currentItems.length === 0) return;
+            
+            let content = '機率統計\n\n';
+            
+            const total = currentItems.reduce((sum, item) => sum + item.probability, 0);
+            content += `總機率：${total.toFixed(4)}%\n\n`;
+            
+            const gradeMap = new Map();
+            currentItems.forEach(({grade, probability}) => {
+                if (!gradeMap.has(grade)) gradeMap.set(grade, 0);
+                gradeMap.set(grade, gradeMap.get(grade) + probability);
+            });
+            
+            content += '各等級機率：\n';
+            for (let [grade, prob] of gradeMap) {
+                content += `${grade}：${prob.toFixed(4)}%\n`;
+            }
+            
+            content += '\n詳細機率表：\n\n';
+            
+            currentItems.forEach(({grade, name, probability}) => {
+                content += `${grade} ${name} ${probability.toFixed(4)}%\n`;
+            });
+            
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `機率統計_${new Date().toISOString().slice(0,10)}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        function clearInput() {
+            document.getElementById('input').value = '';
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('searchContainer').style.display = 'none';
+            document.getElementById('exportBtn').style.display = 'none';
+            document.getElementById('searchInput').value = '';
+            currentItems = [];
+        }
+    </script>
+</body>
+</html>	
