@@ -1,4 +1,5 @@
 # 遊戲機率計算工具
+https://hinake27.github.io/New-Maki-Gacha-Probability-Calculator/
 
 一個簡單且實用的遊戲機率計算工具，支援多種伺服器的機率表格式，提供直觀的機率統計和分析功能。透過 Anthropic 的 Claude 3 Sonnet AI協助開發。
 
